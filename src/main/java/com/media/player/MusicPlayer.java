@@ -1,6 +1,7 @@
 package com.media.player;
 
 import com.media.Listener.NetworkListener;
+import com.media.helper.TrayNotification;
 import javafx.scene.control.TableView;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -78,6 +79,7 @@ public class MusicPlayer
         currentSong = song;
         if (server) playSongOnServer(song.getArtist(), song.getSongName());
         else playSongOnClient(song.getArtist(), song.getSongName());
+        TrayNotification.notifyChangedSong(song);
     }
 
 
