@@ -1,10 +1,12 @@
 package com.media.player;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.net.URL;
 
@@ -19,6 +21,10 @@ public class App extends Application
             Parent root = FXMLLoader.load(url);
             primaryStage.setTitle("Media Player");
             primaryStage.setScene(new Scene(root));
+            primaryStage.setOnCloseRequest(((WindowEvent event) -> {
+                Platform.exit();
+                System.exit(0);
+            }));
             primaryStage.show();
         }
     }

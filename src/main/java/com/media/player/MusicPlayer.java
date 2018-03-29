@@ -59,14 +59,15 @@ public class MusicPlayer
 
     public void playNext()
     {
-        int currentSongIndex = songTable.getSelectionModel().getSelectedIndex();
-        int nextIndex = (currentSongIndex + 1) % songTable.getItems().size();
-        Song nextSong = songTable.getItems().get(nextIndex);
-        try {
-            play(nextSong);
-        } catch (IOException | EncoderException e) {
-            e.printStackTrace();
+        int currentSongIndex;
+        try
+        {
+            currentSongIndex = songTable.getSelectionModel().getSelectedIndex();
+        } catch (NullPointerException e)
+        {
+            currentSongIndex = -1;
         }
+        int nextIndex = (currentSongIndex + 1) % songTable.getItems().size();
         songTable.getSelectionModel().select(nextIndex);
     }
 
