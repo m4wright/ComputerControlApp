@@ -31,10 +31,6 @@ public class NetworkListener
             System.out.println("Caught error");
             System.out.println(e);
         }
-
-        commands.put("done_song", () -> {
-            System.out.println("Done song");
-        });
     }
 
     public void register(String location) throws URISyntaxException, IOException
@@ -55,6 +51,15 @@ public class NetworkListener
     {
         String message = request.queryParams("message");
         System.out.println(message);
+        if (commands.containsKey(message))
+        {
+            commands.get(message).run();
+        }
         return message;
+    }
+
+    public void addHandler(String message, Runnable toRun)
+    {
+        commands.put(message, toRun);
     }
 }
