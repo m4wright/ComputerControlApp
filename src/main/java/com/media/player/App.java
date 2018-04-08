@@ -20,11 +20,14 @@ public class App extends Application
         {
             Parent root = FXMLLoader.load(url);
             primaryStage.setTitle("Media Player");
-            primaryStage.setScene(new Scene(root));
             primaryStage.setOnCloseRequest(((WindowEvent event) -> {
                 Platform.exit();
                 System.exit(0);
             }));
+            Scene scene = new Scene(root);
+
+
+            primaryStage.setScene(scene);
             primaryStage.show();
         }
     }

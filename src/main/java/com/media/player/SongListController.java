@@ -3,16 +3,14 @@ package com.media.player;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.media.player.MusicPlayer.MusicPlayer;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import org.apache.commons.codec.EncoderException;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyEvent;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -25,6 +23,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class SongListController
@@ -40,14 +40,21 @@ public class SongListController
     private Button togglePlayButton;
 
     @FXML
-    private MenuItem server_selector;
+    private CheckMenuItem server_selector;
 
     @FXML
-    private MenuItem client_selector;
+    private CheckMenuItem autoplay_selector;
+
+    @FXML
+    private CheckMenuItem shuffle_selector;
+
+    @FXML
+    private MenuItem close_selector;
+
 
     private ObservableList<Song> songs;
 
-    private static final String baseUrl = "http://192.168.2.25:8080/control_app";
+    private static String baseUrl;
 
 
     private MusicPlayer musicPlayer;
@@ -55,6 +62,32 @@ public class SongListController
 
 
 
+    private static String getBaseUrl()
+    {
+        final String localServerAddress = "http://192.168.2.25:8080/control_app";
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpGet request = new HttpGet("http://checkip.amazonaws.com/");
+        try
+        {
+            HttpResponse response = client.execute(request);
+            String result = IOUtils.toString(response.getEntity().getContent()).replaceAll("\\s+", "");
+
+
+            final String serverAddress = "69.157.191.25";
+            if (serverAddress.equals(result))
+            {
+                return localServerAddress;
+            }
+            else
+            {
+                return String.format("http://%s:8080/control_app", serverAddress);
+            }
+        }
+        catch (IOException e)
+        {
+            return localServerAddress;
+        }
+    }
 
 
 
@@ -121,7 +154,7 @@ public class SongListController
         return (ObservableValue<? extends Song> observable, Song oldValue, Song newValue) -> {
             try {
                 musicPlayer.play(newValue);
-            } catch (IOException | EncoderException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         };
@@ -130,16 +163,23 @@ public class SongListController
 
 
     @FXML
-    void initialize()
+    void initialize() throws ExecutionException, InterruptedException
     {
+        Future<String> getBaseUrlFuture = CompletableFuture.supplyAsync(SongListController::getBaseUrl);
+
+
 
         songTitleColumn.setCellValueFactory(cell -> cell.getValue().songNameProperty());
         songTitleColumn.setComparator(stringComparator());
+
 
         artistColumn.setCellValueFactory(cell -> cell.getValue().artistProperty());
         artistColumn.setComparator(stringComparator());
 
         songTable.getSelectionModel().selectedItemProperty().addListener(getStringChangeListener());
+
+        baseUrl = getBaseUrlFuture.get();
+        System.out.println("Base url is " + baseUrl);
 
         try
         {
@@ -152,10 +192,51 @@ public class SongListController
         }
 
 
-        togglePlayButton.setOnAction((event) -> musicPlayer.togglePlay());
+        togglePlayButton.setOnAction((event) -> {
+            try {
+                musicPlayer.togglePlay();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
-        server_selector.setOnAction(event -> musicPlayer.setToServer());
-        client_selector.setOnAction(event -> musicPlayer.setToClient());
+        shuffle_selector.setOnAction(event -> musicPlayer.setShuffle(shuffle_selector.isSelected()));
+        server_selector.setOnAction(event -> musicPlayer.setServer(server_selector.isSelected()));
+        autoplay_selector.setOnAction(event -> musicPlayer.setAutoPlay(autoplay_selector.isSelected()));
+        close_selector.setOnAction(event -> System.exit(0));
+
+        songTable.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+            switch (event.getCode()) {
+                case PLAY:
+                case SPACE:
+                case ENTER:
+                    try
+                    {
+                        musicPlayer.togglePlay();
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    break;
+                case TRACK_NEXT:
+                case RIGHT:
+                    musicPlayer.playNext();
+                    break;
+                case TRACK_PREV:
+                case LEFT:
+                    musicPlayer.playPrevious();
+                    break;
+            }
+        });
+
+
+        server_selector.setSelected(true);
+        autoplay_selector.setSelected(true);
+        shuffle_selector.setSelected(true);
+        musicPlayer.setShuffle(true);
+
+
 
         CompletableFuture.runAsync(() ->
         {
