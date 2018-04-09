@@ -2,7 +2,6 @@ package com.media.player.MusicPlayer;
 
 import com.media.Listener.NetworkListener;
 import com.media.helper.TrayNotification;
-import com.media.player.ServerMusicPlayer;
 import com.media.player.Song;
 import javafx.scene.control.TableView;
 
@@ -29,6 +28,9 @@ public class MusicPlayer implements MusicPlayerInterface
     private final LinkedList<Song> previousSongs = new LinkedList<>();
     private long timeCurrentSongStarted;
     private final int MAX_ELAPSED_MS_PREV_SONG = 5000;
+
+
+
 
 
     public static MusicPlayer createInstance(TableView<Song> songTable, String baseUrl) throws IOException, URISyntaxException
@@ -65,14 +67,35 @@ public class MusicPlayer implements MusicPlayerInterface
 
 
 
-
     @Override
     public void play(Song song) throws IOException
     {
         if (server) serverMusicPlayer.play(song);
         else clientMusicPlayer.play(song);
 
-        previousSongs.add(song);
+//
+//
+//        if (!previousSongs.isEmpty())
+//        {
+//            System.out.println("Previous songs is not empty");
+//
+//            try
+//            {
+//                PlayButton songCell = (PlayButton) songTable.getColumns().get(0).getCellData(0);
+//                System.out.println("Deselecting " + previousSongs.getLast());
+//
+//            }
+//            catch (Exception ignored) {
+//                System.out.println("Exception :(");
+//                ignored.printStackTrace();
+//            }
+//        }
+
+        if (previousSongs.isEmpty() || !previousSongs.getLast().equals(song))
+        {
+            previousSongs.add(song);
+        }
+
         timeCurrentSongStarted = System.currentTimeMillis();
         while (previousSongs.size() > MAX_PREVIOUS_SONGS)
         {
@@ -80,6 +103,20 @@ public class MusicPlayer implements MusicPlayerInterface
         }
         trayNotification.notifyChangedSong(song);
     }
+
+    public void togglePlay(Song song) throws IOException
+    {
+        if (previousSongs.isEmpty() || !previousSongs.getLast().equals(song))
+        {
+            play(song);
+        }
+        else
+        {
+            togglePlay();
+        }
+    }
+
+
 
     public void playPrevious()
     {
@@ -92,7 +129,6 @@ public class MusicPlayer implements MusicPlayerInterface
                 {
                     previousSong = previousSongs.removeLast();
                 }
-
             }
             try
             {
@@ -127,7 +163,15 @@ public class MusicPlayer implements MusicPlayerInterface
             nextIndex = (currentSongIndex + 1) % songTable.getItems().size();
         }
 
-        songTable.getSelectionModel().select(nextIndex);
+        Song nextSong = songTable.getItems().get(nextIndex);
+        try
+        {
+            play(nextSong);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -143,12 +187,10 @@ public class MusicPlayer implements MusicPlayerInterface
     {
         this.server = server;
     }
-
     public void setShuffle(boolean shuffle)
     {
         this.shuffle = shuffle;
     }
-
     public void setAutoPlay(boolean autoPlay)
     {
         this.autoPlay = autoPlay;

@@ -4,8 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.media.player.MusicPlayer.MusicPlayer;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -35,6 +33,8 @@ public class SongListController
     private TableColumn<Song, String> songTitleColumn;
     @FXML
     private TableColumn<Song, String> artistColumn;
+    @FXML
+    private TableColumn<Song, PlayButton> playSongButtonColumn;
 
     @FXML
     private Button togglePlayButton;
@@ -50,6 +50,8 @@ public class SongListController
 
     @FXML
     private MenuItem close_selector;
+
+
 
 
     private ObservableList<Song> songs;
@@ -149,21 +151,11 @@ public class SongListController
         };
     }
 
-    private ChangeListener<Song> getStringChangeListener()
-    {
-        return (ObservableValue<? extends Song> observable, Song oldValue, Song newValue) -> {
-            try {
-                musicPlayer.play(newValue);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        };
-    }
 
 
 
     @FXML
-    void initialize() throws ExecutionException, InterruptedException
+    void initialize() throws ExecutionException, InterruptedException, IOException
     {
         Future<String> getBaseUrlFuture = CompletableFuture.supplyAsync(SongListController::getBaseUrl);
 
@@ -171,12 +163,14 @@ public class SongListController
 
         songTitleColumn.setCellValueFactory(cell -> cell.getValue().songNameProperty());
         songTitleColumn.setComparator(stringComparator());
-
+        songTitleColumn.setStyle("-fx-alignment: CENTER-LEFT;");
 
         artistColumn.setCellValueFactory(cell -> cell.getValue().artistProperty());
         artistColumn.setComparator(stringComparator());
+        artistColumn.setStyle("-fx-alignment: CENTER-LEFT;");
 
-        songTable.getSelectionModel().selectedItemProperty().addListener(getStringChangeListener());
+        playSongButtonColumn.setCellFactory(cell -> CreatePlaySongCell.createPlaySongCell(cell.getTableView()));
+
 
         baseUrl = getBaseUrlFuture.get();
         System.out.println("Base url is " + baseUrl);
@@ -204,6 +198,7 @@ public class SongListController
         server_selector.setOnAction(event -> musicPlayer.setServer(server_selector.isSelected()));
         autoplay_selector.setOnAction(event -> musicPlayer.setAutoPlay(autoplay_selector.isSelected()));
         close_selector.setOnAction(event -> System.exit(0));
+
 
         songTable.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
             switch (event.getCode()) {
@@ -254,3 +249,6 @@ public class SongListController
         });
     }
 }
+
+
+

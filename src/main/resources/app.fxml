@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.media.player.SongListController">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.media.player.SongListController">
    <children>
       <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-              <MenuItem mnemonicParsing="false" text="Close" fx:id="close_selector" />
+              <MenuItem fx:id="close_selector" mnemonicParsing="false" text="Close" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Edit">
@@ -18,9 +26,9 @@
           </Menu>
         <Menu mnemonicParsing="false" text="Music">
             <items>
-                <CheckMenuItem mnemonicParsing="false" text="Server" fx:id="server_selector" />
-                <CheckMenuItem mnemonicParsing="false" text="Auto Play" fx:id="autoplay_selector" />
-                <CheckMenuItem mnemonicParsing="false" text="Shuffle" fx:id="shuffle_selector" />
+                <CheckMenuItem fx:id="server_selector" mnemonicParsing="false" text="Server" />
+                <CheckMenuItem fx:id="autoplay_selector" mnemonicParsing="false" text="Auto Play" />
+                <CheckMenuItem fx:id="shuffle_selector" mnemonicParsing="false" text="Shuffle" />
             </items>
         </Menu>
         </menus>
@@ -35,7 +43,8 @@
                <children>
                   <TableView fx:id="songTable" layoutX="86.0" layoutY="196.0" prefHeight="606.0" prefWidth="998.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <columns>
-                        <TableColumn id="songTitleColumn" fx:id="songTitleColumn" minWidth="150.0" prefWidth="400.0" text="TITLE" />
+                        <TableColumn fx:id="playSongButtonColumn" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" resizable="false" sortable="false" />
+                        <TableColumn id="songTitleColumn" fx:id="songTitleColumn" minWidth="150.0" prefWidth="410.0" text="TITLE" />
                         <TableColumn id="artistColumn" fx:id="artistColumn" maxWidth="1.7976931348623157E308" minWidth="150.0" prefWidth="400.0" text="ARTIST" />
                      </columns></TableView>
                </children>
