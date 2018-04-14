@@ -2,6 +2,7 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckMenuItem?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
@@ -10,7 +11,7 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.media.player.SongListController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="750.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/9" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.media.player.SongListController">
    <children>
       <MenuBar AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <menus>
@@ -35,10 +36,12 @@
       </MenuBar>
       <SplitPane dividerPositions="0.15" layoutX="228.0" layoutY="215.0" orientation="VERTICAL" prefHeight="750.0" prefWidth="1000.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="30.0">
         <items>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+          <AnchorPane fx:id="headerPane" minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
-                  <Button fx:id="togglePlayButton" alignment="CENTER" layoutX="444.0" layoutY="25.0" mnemonicParsing="false" prefHeight="55.0" prefWidth="110.0" text="Play/Pause" />
-               </children></AnchorPane>
+                  <Button fx:id="togglePlayButton" alignment="CENTER" contentDisplay="CENTER" layoutX="444.0" layoutY="14.0" mnemonicParsing="false" prefHeight="55.0" prefWidth="110.0" text="Play/Pause" textAlignment="CENTER" AnchorPane.leftAnchor="444.0" />
+                   <Label fx:id="song_name_id" alignment="CENTER" contentDisplay="CENTER" layoutX="140.0" layoutY="80.0" prefHeight="21.0" prefWidth="718.0" textAlignment="CENTER" wrapText="true" />
+               </children>
+          </AnchorPane>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
                   <TableView fx:id="songTable" layoutX="86.0" layoutY="196.0" prefHeight="606.0" prefWidth="998.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

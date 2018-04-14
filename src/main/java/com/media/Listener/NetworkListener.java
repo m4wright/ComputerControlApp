@@ -29,7 +29,7 @@ public class NetworkListener
         } catch (Exception e)
         {
             System.out.println("Caught error");
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 

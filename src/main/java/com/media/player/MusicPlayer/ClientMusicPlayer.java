@@ -35,7 +35,6 @@ public class ClientMusicPlayer implements MusicPlayerInterface
                     .setParameter("artist", song.getArtist());
 
             String uri = builder.build().toString();
-            System.out.println(uri);
             try {
                 Media media = new Media(uri);
                 mediaPlayer = new MediaPlayer(media);

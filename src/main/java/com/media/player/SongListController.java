@@ -1,29 +1,21 @@
 package com.media.player;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.media.NetworkConnection.Network;
+import com.media.player.Music.MusicInitializer;
 import com.media.player.MusicPlayer.MusicPlayer;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 public class SongListController
 {
@@ -51,81 +43,18 @@ public class SongListController
     @FXML
     private MenuItem close_selector;
 
+    @FXML
+    private Label song_name_id;
+
 
 
 
     private ObservableList<Song> songs;
-
-    private static String baseUrl;
-
-
     private MusicPlayer musicPlayer;
+    private MusicInitializer music;
 
 
-
-
-    private static String getBaseUrl()
-    {
-        final String localServerAddress = "http://192.168.2.25:8080/control_app";
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpGet request = new HttpGet("http://checkip.amazonaws.com/");
-        try
-        {
-            HttpResponse response = client.execute(request);
-            String result = IOUtils.toString(response.getEntity().getContent()).replaceAll("\\s+", "");
-
-
-            final String serverAddress = "69.157.191.25";
-            if (serverAddress.equals(result))
-            {
-                return localServerAddress;
-            }
-            else
-            {
-                return String.format("http://%s:8080/control_app", serverAddress);
-            }
-        }
-        catch (IOException e)
-        {
-            return localServerAddress;
-        }
-    }
-
-
-
-    private void getSongs() throws IOException
-    {
-        try
-        {
-            URIBuilder builder = new URIBuilder(baseUrl);
-
-            builder.setParameter("command", "get_songs");
-            HttpGet request = new HttpGet(builder.build());
-            HttpClient client = HttpClientBuilder.create().build();
-            HttpResponse response = client.execute(request);
-            HttpEntity entity = response.getEntity();
-            String result = IOUtils.toString(entity.getContent());
-
-            JsonParser parser = new JsonParser();
-            JsonObject artists = (JsonObject) parser.parse(result);
-            List<Song> songs = Collections.synchronizedList(new ArrayList<>());
-
-            artists.entrySet().stream().flatMap((Map.Entry<String, JsonElement> artist) ->
-            {
-                String artistName = artist.getKey();
-
-                return artist.getValue().getAsJsonObject().get("songs")
-                        .getAsJsonObject().keySet()
-                        .parallelStream().map(song -> new Song(artistName, song));
-            }).collect(Collectors.toCollection(() -> songs));
-
-            this.songs = FXCollections.observableList(songs);
-
-        } catch (URISyntaxException e)
-        {
-            e.printStackTrace();
-        }
-    }
+    private String baseUrl;
 
 
 
@@ -137,7 +66,7 @@ public class SongListController
         return (song1, song2) -> {
             song1 = song1.toLowerCase();
             song2 = song2.toLowerCase();
-            List<String> prefixes = Arrays.asList("the", "a");
+            List<String> prefixes = Arrays.asList("the", "a", "les");
             for (String prefix: prefixes)
             {
                 if (song1.startsWith(prefix + " ")) {
@@ -153,14 +82,42 @@ public class SongListController
 
 
 
-
     @FXML
     void initialize() throws ExecutionException, InterruptedException, IOException
     {
-        Future<String> getBaseUrlFuture = CompletableFuture.supplyAsync(SongListController::getBaseUrl);
+        final Network network = new Network();
+
+        initializeColumns();
+
+        baseUrl = network.getServerUrl();
+        System.out.println("Base url is " + baseUrl);
+
+        try
+        {
+            musicPlayer = MusicPlayer.createInstance(songTable, song_name_id);
+        }
+        catch (IOException | URISyntaxException e)
+        {
+            e.printStackTrace();
+            // TODO: handle failure to register
+        }
+
+        initializeActionListeners();
+        setKeyCommands();
+
+        boolean isRemoteServer = network.isRemoteServer();
+        setParametersBasedOnServerLocation(isRemoteServer);
+
+        initializeDropdowns();
+        initializeMusic();
+    }
 
 
 
+
+
+    private void initializeColumns()
+    {
         songTitleColumn.setCellValueFactory(cell -> cell.getValue().songNameProperty());
         songTitleColumn.setComparator(stringComparator());
         songTitleColumn.setStyle("-fx-alignment: CENTER-LEFT;");
@@ -170,22 +127,10 @@ public class SongListController
         artistColumn.setStyle("-fx-alignment: CENTER-LEFT;");
 
         playSongButtonColumn.setCellFactory(cell -> CreatePlaySongCell.createPlaySongCell(cell.getTableView()));
+    }
 
-
-        baseUrl = getBaseUrlFuture.get();
-        System.out.println("Base url is " + baseUrl);
-
-        try
-        {
-            musicPlayer = MusicPlayer.createInstance(songTable, baseUrl);
-        }
-        catch (IOException | URISyntaxException e)
-        {
-            e.printStackTrace();
-            // TODO: handle failure to register
-        }
-
-
+    private void initializeActionListeners()
+    {
         togglePlayButton.setOnAction((event) -> {
             try {
                 musicPlayer.togglePlay();
@@ -198,8 +143,11 @@ public class SongListController
         server_selector.setOnAction(event -> musicPlayer.setServer(server_selector.isSelected()));
         autoplay_selector.setOnAction(event -> musicPlayer.setAutoPlay(autoplay_selector.isSelected()));
         close_selector.setOnAction(event -> System.exit(0));
+    }
 
 
+    private void setKeyCommands()
+    {
         songTable.addEventFilter(KeyEvent.KEY_RELEASED, event -> {
             switch (event.getCode()) {
                 case PLAY:
@@ -224,20 +172,29 @@ public class SongListController
                     break;
             }
         });
+    }
 
+    private void setParametersBasedOnServerLocation(boolean isRemoteServer)
+    {
+        server_selector.setSelected(!isRemoteServer);
+        musicPlayer.setServer(!isRemoteServer);
+    }
 
-        server_selector.setSelected(true);
+    private void initializeDropdowns()
+    {
         autoplay_selector.setSelected(true);
         shuffle_selector.setSelected(true);
         musicPlayer.setShuffle(true);
+    }
 
-
-
+    private void initializeMusic()
+    {
         CompletableFuture.runAsync(() ->
         {
             try
             {
-                getSongs();
+                music = new MusicInitializer();
+                songs = FXCollections.observableList(music.getMusic());
             }
             catch (IOException e)
             {

@@ -22,7 +22,6 @@ public class PlaySongCell extends TableCell<Song, PlayButton>
 
         button.getStyleClass().add("-fx-background-color: transparent");
         button.setOnAction(event -> {
-            System.out.println(getSong());
             try {
                 MusicPlayer.instance().togglePlay(getSong());
             } catch (IOException e) {
@@ -41,10 +40,6 @@ public class PlaySongCell extends TableCell<Song, PlayButton>
         }
     }
 
-    public PlayButton getButton()
-    {
-        return button;
-    }
 
     private Song getSong()
     {

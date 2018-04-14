@@ -1,8 +1,11 @@
 package com.media.player.MusicPlayer;
 
 import com.media.Listener.NetworkListener;
+import com.media.NetworkConnection.Network;
 import com.media.helper.TrayNotification;
 import com.media.player.Song;
+import javafx.application.Platform;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableView;
 
 import java.io.IOException;
@@ -27,19 +30,23 @@ public class MusicPlayer implements MusicPlayerInterface
 
     private final LinkedList<Song> previousSongs = new LinkedList<>();
     private long timeCurrentSongStarted;
-    private final int MAX_ELAPSED_MS_PREV_SONG = 5000;
+    private static final int MAX_ELAPSED_MS_PREV_SONG = 5000;
+
+    private final Label songLabel;
+
+    private int currentSongIndex = -1;
 
 
 
 
-
-    public static MusicPlayer createInstance(TableView<Song> songTable, String baseUrl) throws IOException, URISyntaxException
+    public static MusicPlayer createInstance(TableView<Song> songTable, Label songLabel) throws IOException, URISyntaxException
     {
         if (musicPlayerInstance != null)
         {
-            throw new IllegalStateException("Music Player already exists");
+            throw new IllegalStateException("MusicInitializer Player already exists");
         }
-        musicPlayerInstance = new MusicPlayer(songTable, baseUrl);
+   
+        musicPlayerInstance = new MusicPlayer(songTable, new Network().getServerUrl(), songLabel);
         return musicPlayerInstance;
     }
 
@@ -47,8 +54,9 @@ public class MusicPlayer implements MusicPlayerInterface
 
 
 
-    private MusicPlayer(TableView<Song> songTable, String baseUrl) throws IOException, URISyntaxException
+    private MusicPlayer(TableView<Song> songTable, String baseUrl, Label songLabel) throws IOException, URISyntaxException
     {
+        this.songLabel = songLabel;
         this.songTable = songTable;
 
         serverMusicPlayer = new ServerMusicPlayer(baseUrl);
@@ -72,6 +80,8 @@ public class MusicPlayer implements MusicPlayerInterface
     {
         if (server) serverMusicPlayer.play(song);
         else clientMusicPlayer.play(song);
+
+        Platform.runLater(() -> songLabel.setText(song.toString()));
 
 //
 //
@@ -102,6 +112,9 @@ public class MusicPlayer implements MusicPlayerInterface
             previousSongs.removeFirst();
         }
         trayNotification.notifyChangedSong(song);
+
+
+        currentSongIndex = songTable.getItems().indexOf(song);
     }
 
     public void togglePlay(Song song) throws IOException
@@ -144,15 +157,6 @@ public class MusicPlayer implements MusicPlayerInterface
 
     public void playNext()
     {
-        int currentSongIndex;
-        try
-        {
-            currentSongIndex = songTable.getSelectionModel().getSelectedIndex();
-        } catch (NullPointerException e)
-        {
-            currentSongIndex = -1;
-        }
-
         int nextIndex;
         if (shuffle)
         {
