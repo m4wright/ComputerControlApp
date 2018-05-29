@@ -45,7 +45,7 @@ public class MusicPlayer implements MusicPlayerInterface
         {
             throw new IllegalStateException("MusicInitializer Player already exists");
         }
-   
+
         musicPlayerInstance = new MusicPlayer(songTable, new Network().getServerUrl(), songLabel);
         return musicPlayerInstance;
     }

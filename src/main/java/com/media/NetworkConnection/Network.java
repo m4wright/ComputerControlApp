@@ -33,12 +33,16 @@ public class Network
         }
     }
 
+    public String getServerUrl() throws IOException {
+        return getServerUrl(8080);
+    }
 
-    public String getServerUrl() throws IOException
+
+    public String getServerUrl(int port) throws IOException
     {
         try
         {
-            return serverUrlFuture.get();
+            return String.format("http://%s:%d/control_app/", serverUrlFuture.get(), port);
         }
         catch (InterruptedException | ExecutionException e)
         {
@@ -61,11 +65,11 @@ public class Network
 
 
 
+
     private static String computeBaseUrl() throws IOException
     {
         final String remoteServerAddress = "69.157.191.25";
         final String localServerAddress = "192.168.2.25";
-        final int port = 8080;
 
         final String getExternalAddressUrl = "http://checkip.amazonaws.com/";
         HttpClient client = HttpClientBuilder.create().build();
@@ -86,6 +90,6 @@ public class Network
             isRemoteAddressFuture.complete(true);
         }
 
-        return String.format("http://%s:%d/control_app", serverAddress, port);
+        return serverAddress;
     }
 }

@@ -9,6 +9,7 @@ public class TrayNotification
 {
     private String[] notifyCommandFormat;
 
+
     public TrayNotification()
     {
         try

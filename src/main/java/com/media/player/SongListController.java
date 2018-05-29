@@ -54,8 +54,6 @@ public class SongListController
     private MusicInitializer music;
 
 
-    private String baseUrl;
-
 
 
 
@@ -66,7 +64,7 @@ public class SongListController
         return (song1, song2) -> {
             song1 = song1.toLowerCase();
             song2 = song2.toLowerCase();
-            List<String> prefixes = Arrays.asList("the", "a", "les");
+            List<String> prefixes = Arrays.asList("the", "a", "les", "le");
             for (String prefix: prefixes)
             {
                 if (song1.startsWith(prefix + " ")) {
@@ -89,7 +87,7 @@ public class SongListController
 
         initializeColumns();
 
-        baseUrl = network.getServerUrl();
+        String baseUrl = network.getServerUrl();
         System.out.println("Base url is " + baseUrl);
 
         try
